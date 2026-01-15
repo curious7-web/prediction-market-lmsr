@@ -1,5 +1,3 @@
-# src/stress_test.py
-
 from typing import Dict, List
 import numpy as np
 
@@ -66,9 +64,6 @@ def run_stress_test(
     return summary
 
 
-# -------------------------
-# Run directly
-# -------------------------
 if __name__ == "__main__":
     summary = run_stress_test(n_runs=200)
 

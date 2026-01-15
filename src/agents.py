@@ -1,49 +1,145 @@
-# src/agents.py
-from dataclasses import dataclass
-from typing import List, Optional
 import random
+from dataclasses import dataclass
+from typing import Optional
+
+from .gemini_interface import GeminiClient
+
 
 @dataclass
+class Trade:
+    outcome: int
+    quantity: float
+
+
 class Agent:
-    name: str
-    cash: float
-    shares: List[float]
+    def __init__(self, name: str):
+        self.name = name
+        self.wealth = 0.0
 
-    def net_worth(self, prices: List[float]) -> float:
-        return self.cash + sum(s * p for s, p in zip(self.shares, prices))
-
-    def decide_trade(self, prices: List[float], t: int) -> List[float]:
+    def act(self, market):
         raise NotImplementedError
 
 
-@dataclass
 class TruthTeller(Agent):
-    """
-    Agent that believes the true probability distribution
-    and trades toward it.
-    """
-    belief: List[float]
-    intensity: float = 2.0
+    def __init__(self, true_p: float):
+        super().__init__("truth")
+        self.true_p = true_p
 
-    def decide_trade(self, prices: List[float], t: int) -> List[float]:
-        # Move market toward belief
-        return [self.intensity * (b - p) for b, p in zip(self.belief, prices)]
+    def act(self, market):
+        price = market.price(1)
+        qty = self.true_p - price
+        if abs(qty) > 1e-3:
+            return Trade(outcome=1, quantity=qty)
+        return None
 
 
-@dataclass
 class NoiseTrader(Agent):
-    """
-    Random trader to create market pressure / noise.
-    """
-    scale: float = 1.0
-    seed: Optional[int] = None
+    def __init__(self):
+        super().__init__("noise")
 
-    def __post_init__(self):
-        if self.seed is not None:
-            random.seed(self.seed)
+    def act(self, market):
+        qty = random.uniform(-0.5, 0.5)
+        return Trade(outcome=1, quantity=qty)
 
-    def decide_trade(self, prices: List[float], t: int) -> List[float]:
-        K = len(prices)
-        raw = [random.uniform(-self.scale, self.scale) for _ in range(K)]
-        mean = sum(raw) / K
-        return [x - mean for x in raw]
+
+class GeminiStrategyAgent(Agent):
+    """
+    Gemini agent that either:
+    - uses an externally supplied belief (for stress tests), OR
+    - queries Gemini once per episode, OR
+    - falls back safely to 0.5
+    """
+
+    def __init__(
+        self,
+        market_context: str,
+        belief: float | None = None,
+    ):
+        super().__init__("gemini")
+
+        if belief is not None:
+            # Explicit belief override (used in notebooks / stress tests)
+            self.belief = float(belief)
+        else:
+            # Try Gemini API once
+            try:
+                self.client = GeminiClient()
+                self.belief = self.client.propose_belief(market_context)
+            except Exception as e:
+                print("[Gemini] API unavailable — using fallback belief.")
+                self.belief = 0.5
+
+        # Safety clamp
+        self.belief = max(0.01, min(0.99, self.belief))
+
+    def act(self, market):
+        price = market.price(1)
+        qty = self.belief - price
+
+        # Conservative position sizing
+        qty = max(min(qty, 0.5), -0.5)
+
+        if abs(qty) > 1e-3:
+            return Trade(outcome=1, quantity=qty)
+
+        return None
+class RobustGeminiAgent(Agent):
+    """
+    Risk-aware Gemini agent.
+    Trades toward belief but aggressively scales down exposure
+    to control tail risk.
+    """
+
+    def __init__(
+        self,
+        market_context: str,
+        belief: float | None = None,
+        risk_aversion: float = 10.0,  # ← STRONGER by default
+    ):
+        super().__init__("robust_gemini")
+
+        if belief is not None:
+            self.belief = float(belief)
+        else:
+            try:
+                self.client = GeminiClient()
+                self.belief = self.client.propose_belief(market_context)
+            except Exception:
+                print("[RobustGemini] API unavailable — using fallback belief.")
+                self.belief = 0.5
+
+        self.belief = max(0.01, min(0.99, self.belief))
+        self.risk_aversion = risk_aversion
+
+    def act(self, market):
+        price = market.price(1)
+        delta = self.belief - price
+
+        # ---- KEY CHANGE ----
+        # Nonlinear risk penalty (dominates when delta is large)
+        qty = delta / (1.0 + self.risk_aversion * abs(delta))
+
+        # Hard cap (same as Gemini)
+        qty = max(min(qty, 0.5), -0.5)
+
+        if abs(qty) > 1e-3:
+            return Trade(outcome=1, quantity=qty)
+
+        return None
+class AdversarialNoiseTrader(Agent):
+    """
+    Trades against directional pressure to exploit biased agents.
+    """
+
+    def __init__(self, strength: float = 0.3):
+        super().__init__("adversary")
+        self.strength = strength
+
+    def act(self, market):
+        price = market.price(1)
+
+        # Push away from equilibrium (0.5)
+        direction = -1 if price > 0.5 else 1
+        qty = direction * self.strength
+
+        return Trade(outcome=1, quantity=qty)
