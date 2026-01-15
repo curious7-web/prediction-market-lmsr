@@ -11,33 +11,33 @@ The goal is not to “beat the market”, but to surface **failure modes**, **ta
 Modern LLM agents can form beliefs about uncertain events (e.g., elections, sports, diagnostics). However, in markets:
 
 - A slightly wrong belief can still be **profitable in expectation**…
-- …but can produce **large negative tail outcomes** (rare but catastrophic).
+- …but can produce **rare but catastrophic tail outcomes**.
 
 This repo provides:
 
 - A clean **LMSR simulation engine**
 - Multiple **agent models** (truthful, noisy, LLM-based, robust, adversarial)
 - Tools for **stress testing + tail risk analysis**
-- Jupyter **experiment notebooks**
 - Reproducible **metrics** (Mean, Worst, CVaR)
+- Jupyter **experiment notebooks**
 
 ---
 
 ## 📦 Features
 
-✔ **LMSR Market Maker**  
-✔ **Agent Modules**:
+✔ LMSR market maker  
+✔ Agent modules:
 - `TruthTeller` (trades toward true probability)
-- `NoiseTrader` (random strategies)
+- `NoiseTrader` (random trading)
 - `GeminiStrategyAgent` (LLM belief or manual override)
 - `RobustGeminiAgent` (risk-aware scaling)
 - `AdversarialNoiseTrader` (strategic pressure)
 
-✔ **Belief Misspecification Stress Tests**  
-✔ **Tail Risk Metrics (CVaR)**  
-✔ **Wealth Distribution Comparison**  
-✔ **Adversary On/Off Ablations**  
-✔ **Notebook Visualization**  
+✔ Belief misspecification stress tests  
+✔ Tail risk metrics (CVaR)  
+✔ Wealth distribution comparison  
+✔ Adversary on/off ablations  
+✔ Notebook visualization  
 
 ---
 
@@ -45,182 +45,166 @@ This repo provides:
 
 Clone and set up environment:
 
-```bash
-1. git clone https://github.com/curious7-web/prediction-market-lmsr.git
-2. cd prediction-market-lmsr
-3. python3 -m venv .venv
-4. source .venv/bin/activate
-5. pip install -r requirements.txt
-7. Single Simulation
-  ==> python -m src.simulate
-8. Prints one episode outcome with fallback belief if Gemini API is unavailable:
-
-[Gemini] API unavailable — using fallback belief.
-9. Full Stress Test Demo
-  ==> python -m src.demo
-```
-**Produces:**
-1. Mean wealth
-
-2. Worst outcomes
-
-3. CVaR tails
-
-4. Belief offset stress tests
-
-5. Robust vs. Gemini comparison
-
-6. Adversary on/off ablation
-
-**Example snippet:**
-```
-=== Experiment 2: Adversary On vs Off ===
-No adversary     | mean 0.06 | worst -0.39 | CVaR(5%) -0.33
-With adversary   | mean 0.02 | worst -0.29 | CVaR(5%) -0.27
-```
-**📊 Notebook Experiments**
-
-1. Launch Jupyter:
-
-jupyter notebook notebooks/experiments.ipynb
-
-2. Included visualizations:
-
-a. Gemini vs RobustGemini wealth histograms
-
-b. Adversary ON vs OFF distributions
-
-c. CVaR cutoff markers
-
-**Example insight:**
-
-Tail-risk is interaction-dependent: adversarial traders can reduce catastrophic losses by disrupting directional exposure.
-```
-🧩 Project Structure
-prediction-market-lmsr/
- ├── src/
- │    ├── simulate.py         # single-episode simulator
- │    ├── demo.py             # batch experiments + stress tests
- │    ├── agents.py           # agent definitions
- │    ├── lmsr.py             # LMSR market maker
- │    ├── metrics.py          # CVaR & evaluation metrics
- │    └── gemini_interface.py # Gemini API (fallback safe)
- ├── notebooks/
- │    └── experiments.ipynb   # visualization + analysis
- ├── requirements.txt
- ├── README.md
- └── LICENSE (optional)
-```
-**📐 Metrics**
-
-We evaluate agent wealth using:
-
-a. Mean — profitability
-
-b. Worst-case — drawdown severity
-
-c. CVaR(5%) — tail conditional expectation
-
-Mathematically:
-
-
-
-This reveals risk that mean-based summaries hide.
-
-**🧠 LLM Beliefs (Gemini)**
-
-LLM beliefs are handled by:
-
-**GeminiStrategyAgent(belief=0.55)**
-
-
-If API access fails:
-
-**[Gemini] API unavailable — using fallback belief.**
-
-
-This ensures full reproducibility without paid API keys.
-
-**⚠ Limitations**
-
-This is a negative result–friendly research framework:
-
-a. Agents do not update beliefs during trading
-
-b. No multi-round learning or planning
-
-c. Market liquidity is fixed (LMSR b)
-
-d. LLM beliefs may be fallback 0.5 if API unavailable
-
-e. These are intentional to isolate belief fragility & tail risk.
-
-**📎 Relevance to Research & Workshops**
-
-This framework surfaces limitations in:
-
-a. LLM agents under uncertainty
-
-b. Calibration vs. robustness
-
-c. Risk sensitivity in interactive systems
-
-d. Strategic multi-agent behavior
-
-e. Suitable for workshops focused on:
-
-f. LLM agents
-
-g. Negative results & brittleness
-
-h. Alignment & evaluation
-
-i. AI safety & robustness
-
-j. Mechanism design & markets
-
-**🔁 Reproducibility Notes**
-
-All experiments are seeded (numpy.random.seed)
-
-No external data dependencies
-
-Gemini API calls degrade gracefully
-
-Single NVIDIA GPU not required
-
-CVaR estimations use bootstrap-free MC
-
-**📄 License**
-
-MIT License (recommended for research)
-
-**👤 Contact / Maintainer**
-
-Author: Aditya Kumar Karna
-For collaboration or research use, feel free to open an issue or PR.
-
+    git clone https://github.com/curious7-web/prediction-market-lmsr.git
+    cd prediction-market-lmsr
+    python3 -m venv .venv
+    source .venv/bin/activate
+    pip install -r requirements.txt
 
 ---
 
-### If you want, I can also generate:
+## ▶️ Running Simulations
 
-✔ `LICENSE`  
-✔ `setup.py` (pip installable)  
-✔ Academic BibTex for citations  
-✔ `paper.md` for JOSS journal  
-✔ `abstract` for workshop submission  
+### Single simulation
 
-Just say:
+    python -m src.simulate
 
-> **"Generate academic abstract"**
+If Gemini API is unavailable:
 
-or
+    [Gemini] API unavailable — using fallback belief.
 
-> **"Write ICBINB paper draft"**
+### Full stress test
 
-or
+    python -m src.demo
 
-> **"Make GitHub release notes"**
+This produces:
 
-👑 Ready to push. Let me know if you want the README auto-committed.
+- Mean wealth
+- Worst outcomes
+- CVaR tails
+- Belief offset stress tests
+- Gemini vs RobustGemini comparison
+- Adversary on/off ablations
+
+Example output:
+
+    === Experiment 2: Adversary On vs Off ===
+    No adversary     | mean 0.06 | worst -0.39 | CVaR(5%) -0.33
+    With adversary   | mean 0.02 | worst -0.29 | CVaR(5%) -0.27
+
+---
+
+## 📊 Notebook Experiments
+
+Launch:
+
+    jupyter notebook notebooks/experiments.ipynb
+
+Visualizations include:
+
+- Gemini vs RobustGemini wealth histograms
+- CVaR tail markers
+- Adversary vs no-adversary distributions
+
+Key insight:
+
+> Tail risk is interaction-dependent: adversarial traders can reduce catastrophic losses by disrupting directional exposure.
+
+---
+
+## 🧩 Project Structure
+
+    prediction-market-lmsr/
+     ├── src/
+     │    ├── simulate.py         # single-episode simulator
+     │    ├── demo.py             # batch experiments + stress tests
+     │    ├── agents.py           # agent definitions
+     │    ├── lmsr.py             # LMSR market maker
+     │    ├── metrics.py          # CVaR & evaluation metrics
+     │    └── gemini_interface.py # Gemini API (fallback safe)
+     ├── notebooks/
+     │    └── experiments.ipynb   # visualization + analysis
+     ├── requirements.txt
+     ├── README.md
+     └── LICENSE (optional)
+
+---
+
+## 📐 Metrics
+
+We evaluate agent wealth under three risk dimensions:
+
+1. **Mean** — profitability  
+2. **Worst-case** — drawdown severity  
+3. **CVaR(5%)** — tail conditional expectation
+
+In symbols:
+
+\[
+\text{CVaR}_\alpha = \mathbb{E}[X \mid X \leq \text{VaR}_\alpha]
+\]
+
+This reveals tail risk that mean-based summaries can hide.
+
+---
+
+## 🧠 LLM Beliefs (Gemini)
+
+LLM beliefs are handled via:
+
+- `GeminiStrategyAgent(belief=0.55)` for manual belief override
+- Or via `GeminiClient.propose_belief(market_context)` when configured
+
+If API access fails:
+
+    [Gemini] API unavailable — using fallback belief.
+
+This ensures **reproducibility without paid API keys**.
+
+---
+
+## ⚠ Limitations
+
+This is a **negative-result–friendly** research framework:
+
+- Agents do **not** update beliefs during trading
+- No multi-round planning or learning
+- Market liquidity parameter `b` is fixed
+- LLM fallback belief can be constant (0.5)
+- API usage is optional and degrades gracefully
+
+These simplify analysis of **belief fragility** and **tail risk**.
+
+---
+
+## 📎 Relevance
+
+This framework reveals limitations in:
+
+- LLM calibration and confidence
+- Risk sensitivity under misspecification
+- Multi-agent interaction effects
+- Robustness vs pure expectation maximization
+- Mechanism design & financial AI with LLM agents
+
+Suitable for workshops on:
+
+- LLM agents
+- Alignment & evaluation
+- Negative results (ICBINB)
+- Robust decision-making
+- Financial AI / mechanism design
+
+---
+
+## 🔁 Reproducibility Notes
+
+- All experiments seeded (`numpy.random.seed`)
+- No external data dependencies
+- No GPU required
+- Gemini API calls fail safely with explicit logging
+- CVaR computed via Monte Carlo over repeated runs
+
+---
+
+## 📄 License
+
+MIT License (recommended for research).
+
+---
+
+## 👤 Contact / Maintainer
+
+**Author:** Aditya Kumar Karna  
+
+Open issues or pull requests are welcome.
