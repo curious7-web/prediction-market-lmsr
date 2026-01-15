@@ -199,7 +199,7 @@ Suitable for workshops on:
 
 ## 📄 License
 
-MIT License (recommended for research).
+MIT License.
 
 ---
 
@@ -208,3 +208,4 @@ MIT License (recommended for research).
 **Author:** Aditya Kumar Karna  
 
 Open issues or pull requests are welcome.
+
