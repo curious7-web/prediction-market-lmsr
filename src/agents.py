@@ -58,10 +58,10 @@ class GeminiStrategyAgent(Agent):
         super().__init__("gemini")
 
         if belief is not None:
-            # Explicit belief override (used in notebooks / stress tests)
+            
             self.belief = float(belief)
         else:
-            # Try Gemini API once
+           
             try:
                 self.client = GeminiClient()
                 self.belief = self.client.propose_belief(market_context)
@@ -69,14 +69,14 @@ class GeminiStrategyAgent(Agent):
                 print("[Gemini] API unavailable — using fallback belief.")
                 self.belief = 0.5
 
-        # Safety clamp
+        
         self.belief = max(0.01, min(0.99, self.belief))
 
     def act(self, market):
         price = market.price(1)
         qty = self.belief - price
 
-        # Conservative position sizing
+       
         qty = max(min(qty, 0.5), -0.5)
 
         if abs(qty) > 1e-3:
@@ -94,7 +94,7 @@ class RobustGeminiAgent(Agent):
         self,
         market_context: str,
         belief: float | None = None,
-        risk_aversion: float = 10.0,  # ← STRONGER by default
+        risk_aversion: float = 10.0,  
     ):
         super().__init__("robust_gemini")
 
@@ -115,11 +115,10 @@ class RobustGeminiAgent(Agent):
         price = market.price(1)
         delta = self.belief - price
 
-        # ---- KEY CHANGE ----
-        # Nonlinear risk penalty (dominates when delta is large)
+        
         qty = delta / (1.0 + self.risk_aversion * abs(delta))
 
-        # Hard cap (same as Gemini)
+        
         qty = max(min(qty, 0.5), -0.5)
 
         if abs(qty) > 1e-3:
@@ -138,7 +137,7 @@ class AdversarialNoiseTrader(Agent):
     def act(self, market):
         price = market.price(1)
 
-        # Push away from equilibrium (0.5)
+        
         direction = -1 if price > 0.5 else 1
         qty = direction * self.strength
 

@@ -1,4 +1,3 @@
-# src/demo.py
 import numpy as np
 
 from .simulate import run_episode
@@ -17,10 +16,6 @@ def run_demo():
     runs = 200
 
     print("\nRunning 200 market simulations...\n")
-
-    # ============================================================
-    # BASELINE AGENT PERFORMANCE
-    # ============================================================
 
     wealth = {
         "truth": [],
@@ -46,10 +41,6 @@ def run_demo():
             f"| CVaR(5%): {stats['cvar']:7.2f}"
         )
 
-    # ============================================================
-    # MARKET BEHAVIOR
-    # ============================================================
-
     print("\nMarket behavior")
     print("--------------------------------------------------")
     prices = [
@@ -57,11 +48,6 @@ def run_demo():
         for i in range(runs)
     ]
     print(f"Mean final price (p1): {np.mean(prices):.3f} +/- {np.std(prices):.3f}")
-
-    # ============================================================
-    # BELIEF MISSPECIFICATION STRESS TEST
-    # ============================================================
-
     print("\nBelief misspecification stress test")
     print("(Gemini belief error vs tail risk)\n")
     print("offset | mean wealth | worst | CVaR(5%)")
@@ -86,10 +72,6 @@ def run_demo():
             f"{stats['worst']:7.2f} | "
             f"{stats['cvar']:7.2f}"
         )
-
-    # ============================================================
-    # EXPERIMENT 1: GEMINI VS ROBUST GEMINI
-    # ============================================================
 
     print("\n=== Experiment 1: Gemini vs RobustGemini ===\n")
 
@@ -122,9 +104,6 @@ def run_demo():
         "by outcome realizations and market structure rather than marginal exposure size."
     )
 
-    # ============================================================
-    # EXPERIMENT 2: ADVERSARY ON VS OFF
-    # ============================================================
 
     print("\n=== Experiment 2: Adversary On vs Off ===\n")
 

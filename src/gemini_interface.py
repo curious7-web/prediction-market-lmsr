@@ -1,9 +1,8 @@
-# src/gemini_interface.py
 import os
 import random
 
 class GeminiClient:
-    _warned = False  # class-level flag
+    _warned = False  
 
     def __init__(self):
         self.api_key = os.getenv("GEMINI_API_KEY")
@@ -13,8 +12,8 @@ class GeminiClient:
             return self._fallback("API key not set")
 
         try:
-            # Real API call would go here
-            raise RuntimeError("Quota exceeded")  # simulate failure
+            
+            raise RuntimeError("Quota exceeded")  
         except Exception as e:
             return self._fallback(str(e))
 

@@ -1,4 +1,3 @@
-# src/simulate.py
 import numpy as np
 
 from .lmsr import LMSRMarket
@@ -21,11 +20,11 @@ def run_episode(
 ):
     np.random.seed(seed)
 
-    # Hidden true probability
+    
     true_p = 0.6
     outcome = int(np.random.rand() < true_p)
 
-    # Market
+    
     market = LMSRMarket(b=10.0, q=np.array([0.0, 0.0]))
 
     context = (
@@ -58,7 +57,6 @@ def run_episode(
             )
         )
 
-    # Single trading round
     for agent in agents:
         trade = agent.act(market)
         if isinstance(trade, Trade):
